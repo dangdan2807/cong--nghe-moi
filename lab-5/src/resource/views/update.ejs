@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+</head>
+
+<body>
+    <div class="d-flex justify-content-center">
+        <div>
+            <form action="/<%= maSP %>" method="post" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="ma_sp" class="form-label">Mã sản phẩm</label>
+                    <input type="number" name="ma_sp" class="form-control" id="ma_sp" placeholder="Nhập mã sản phẩm"
+                        value="<%= sanPham.ma_sp %>" aria-label="readonly input" readonly>
+                </div>
+                <div class="mb-3">
+                    <label for="ten_sp" class="form-label">Tên sản phẩm</label>
+                    <input type="text" name="ten_sp" class="form-control" id="ten_sp" placeholder="Nhập tên sản phẩm"
+                        value="<%= sanPham.ten_sp %>" required>
+                </div>
+                <div class="mb-3">
+                    <label for="so_luong" class="form-label">Số lượng</label>
+                    <input type="number" name="so_luong" class="form-control" id="so_luong"
+                        value="<%= sanPham.so_luong %>" placeholder="Nhập số lượng sản phẩm" required>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary mb-3">Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-u1OknCvxWvY5kfmNBILK2hRnQC3Pr17a+RTT6rIHI7NnikvbZlHgTPOOmMi466C8" crossorigin="anonymous">
+    </script>
+</body>
+
+</html>
