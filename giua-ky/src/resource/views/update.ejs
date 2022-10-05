@@ -1,48 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Home</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT"
+            crossorigin="anonymous"
+        />
+    </head>
 
-<head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Home</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous" />
-</head>
-
-<body>
-    <div>
-        <h3 class="text-center mb-2">cap nhat san pham</h3>
-    </div>
-    <div class="d-flex justify-content-center">
-        <div class="alert alert-danger
-        <% if(alertMessage ===undefined || alertMessage ===null || alertMessage ==='' ) { %> d-none <% } %>
-        " role="alert">
-            <% if(alertMessage !==undefined || alertMessage !==null || alertMessage !=='' ) { %>
-                <%= alertMessage %>
-                    <% } %>
+    <body>
+        <div>
+            <h3 class="text-center mb-2">cap nhat san pham</h3>
         </div>
-    </div>
-    <div class="d-flex justify-content-center">
-        <form method="POST" action="/update">
-            <div class="mb-3">
-                <label for="ma_sp" class="form-label">Ma san pham:</label>
-                <input type="text" class="form-control" id="ma_sp" name="ma_sp" value="<%= sanPham.ma_sp %>" />
+        <div class="d-flex justify-content-center">
+            <div
+                class="alert alert-danger <% if(alertMessage ===undefined || alertMessage ===null || alertMessage ==='' ) { %> d-none <% } %>"
+                role="alert"
+            >
+                <% if(alertMessage !==undefined || alertMessage !==null ||
+                alertMessage !=='' ) { %> <%= alertMessage %> <% } %>
             </div>
+        </div>
+        <div class="d-flex justify-content-center">
+            <form id="update-form" method="POST" action="/update">
+                <div class="mb-3">
+                    <label for="ma_sp" class="form-label">Ma san pham:</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="ma_sp"
+                        name="ma_sp"
+                        value="<%= sanPham.ma_sp %>"
+                    />
+                </div>
 
-            <div class="mb-3">
-                <label for="ten_sp" class="form-label">Ten san pham:</label>
-                <input type="text" class="form-control" id="ten_sp" name="ten_sp" value="<%= sanPham.ten_sp %>" />
-            </div>
+                <div class="mb-3">
+                    <label for="ten_sp" class="form-label">Ten san pham:</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="ten_sp"
+                        name="ten_sp"
+                        value="<%= sanPham.ten_sp %>"
+                    />
+                </div>
 
-            <div class="mb-3">
-                <label for="so_luong" class="form-label">so luong:</label>
-                <input type="text" class="form-control" id="so_luong" name="so_luong" value="<%= sanPham.so_luong %>" aria-valuemin="1" min="1" />
-            </div>
+                <div class="mb-3">
+                    <label for="so_luong" class="form-label">so luong:</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="so_luong"
+                        name="so_luong"
+                        value="<%= sanPham.so_luong %>"
+                        aria-valuemin="1"
+                        min="1"
+                    />
+                </div>
 
-            <button type="submit" class="btn btn-primary">Submit</button>
-        </form>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-u1OknCvxWvY5kfmNBILK2hRnQC3Pr17a+RTT6rIHI7NnikvbZlHgTPOOmMi466C8" crossorigin="anonymous"></script>
-</body>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+        <script
+            src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-u1OknCvxWvY5kfmNBILK2hRnQC3Pr17a+RTT6rIHI7NnikvbZlHgTPOOmMi466C8"
+            crossorigin="anonymous"
+        ></script>
+        <script>
+            const ma_sp_element = document.getElementById('ma_sp');
+            const ma_sp_error = document.querySelector('#ma_sp ~ .error');
 
+            const ten_sp_element = document.getElementById('ten_sp');
+            const ten_sp_error = document.querySelector('#ten_sp ~ .error');
+
+            const so_luong_element = document.getElementById('so_luong');
+            const so_luong_error = document.querySelector('#so_luong ~ .error');
+            const form = document.getElementById('update-form');
+
+            const stringRegex = /^[a-zA-Z0-9]+$/;
+            const numberRegex = /^[0-9]+$/;
+
+            form.addEventListener('submit', (e) => {
+                let flag = true;
+
+                if (stringRegex.test(ma_sp_element.value) === false) {
+                    ma_sp_error.textContent =
+                        'Mã sản phẩm không hợp lệ (chỉ chứa số và chữ)';
+                    event.preventDefault();
+                    flag = false;
+                } else {
+                    ma_sp_error.textContent = '';
+                }
+                if (stringRegex.test(ten_sp_element.value) === false) {
+                    ten_sp_error.textContent =
+                        'Tên sản phẩm không hợp lệ (chỉ chứa số và chữ)';
+                    event.preventDefault();
+                    flag = false;
+                } else {
+                    ten_sp_error.textContent = '';
+                }
+
+                if (numberRegex.test(so_luong_element.value) === false) {
+                    so_luong_error.textContent =
+                        'số lượng sản phẩm không hợp lệ (chỉ chứa số)';
+                    event.preventDefault();
+                    flag = false;
+                } else {
+                    so_luong_error.textContent = '';
+                }
+
+                if (flag) {
+                    form.submit();
+                }
+            });
+        </script>
+    </body>
 </html>
