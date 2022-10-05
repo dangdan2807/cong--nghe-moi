@@ -93,7 +93,6 @@ app.post('/update', upload.single('image'), async (req, res) => {
     try {
         // check if product exists
         const { Items } = await docClient.query(params).promise();
-        console.log(Items);
         if (Items.length == 0) {
             return res.render('update', {
                 alertMessage: 'san pham khong ton tai',
@@ -169,7 +168,6 @@ app.get('/:ma_sp', async (req, res) => {
 
     try {
         const { Items } = await docClient.query(params).promise();
-        console.log(Items);
         if (Items.length == 0) {
             return res.redirect('/');
         }
@@ -186,7 +184,7 @@ app.get('/:ma_sp', async (req, res) => {
 });
 
 // add
-app.post('/', upload.single('image'), async (req, res) => {
+app.post('/add', upload.single('image'), async (req, res) => {
     const { ma_sp, ten_sp, so_luong } = req.body;
     const image = req.file;
     if (!image) {
