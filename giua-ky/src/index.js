@@ -1,14 +1,9 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const AWS = require('aws-sdk');
-const bodyParser = require('body-parser');
-const multer = require('multer');
-const fs = require('fs');
 
-// base config
 const app = express();
 dotenv.config();
-const PORT = process.env.PORT || 3000;
 
 // aws config
 AWS.config.update({
@@ -17,238 +12,169 @@ AWS.config.update({
     region: process.env.AWS_REGION,
 });
 
-const s3 = new AWS.S3({
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY_ID,
-    region: process.env.AWS_REGION,
-});
-
-// multer config
-var imageUrl = '';
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        if (
-            file.mimetype === 'image/jpg' ||
-            file.mimetype === 'image/jpeg' ||
-            file.mimetype === 'image/png'
-        ) {
-            cb(null, './public/images');
-        } else {
-            cb(new Error('không phải hình ảnh'), false);
-        }
-    },
-    filename: function (req, file, cb) {
-        imageUrl = Date.now() + file.originalname;
-        cb(null, imageUrl);
-    },
-});
-
-const upload = multer({ storage: storage });
-
-const uploadFile = (file) => {
-    const fileStream = fs.createReadStream(file.path);
-    const uploadParams = {
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Body: fileStream,
-        Key: file.filename,
-    };
-
-    return s3.upload(uploadParams).promise();
-};
-
-// temple engine
-app.set('view engine', 'ejs');
-app.set('views', './src/resource/views');
-app.use(express.urlencoded({ extended: true }));
+// template engine
 app.use(express.json({ extended: true }));
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
+app.set('view engine', 'ejs');
+app.set('views', 'src/views/');
 
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
+
+// dynamodb config
 const TableName = 'SanPhams';
 const docClient = new AWS.DynamoDB.DocumentClient();
 
-// route
+// routes
 app.get('/add', async (req, res) => {
-    return res.render('add', {
-        alertMessage: '',
-    });
+    return res.render('add');
 });
 
-app.post('/update', upload.single('image'), async (req, res) => {
-    const { ma_sp, ten_sp, so_luong } = req.body;
-    const image = req.file;
-    if (!image) {
-        const error = new Error('Please upload a file');
-        return next(error);
+app.post('/add', async (req, res) => {
+    const { ten_sp, so_luong, image } = req.body;
+
+    // kiểm tra các biến có bị thiếu không
+    if (!ten_sp || !so_luong || !image) {
+        return res.redirect('/add');
     }
 
-    let params = {
+    // tạo params
+    const params = {
         TableName,
-        KeyConditionExpression: 'ma_sp = :v_ma_sp',
-        ExpressionAttributeValues: {
-            ':v_ma_sp': ma_sp,
+        Item: {
+            ma_sp: Date.now() + '',
+            ten_sp,
+            so_luong,
+            image,
         },
-        Limit: 1,
     };
 
     try {
-        // check if product exists
-        const { Items } = await docClient.query(params).promise();
-        if (Items.length == 0) {
+        // thêm sản phẩm vào db
+        const data = docClient.put(params).promise();
+        return res.redirect('/');
+    } catch (err) {
+        console.log(err);
+    }
+    return res.redirect('/');
+});
+
+app.get('/update/:ma_sp', async (req, res) => {
+    const { ma_sp } = req.params;
+
+    // kiểm tra mã sản phẩm có tồn tại không
+    if (!ma_sp) {
+        return res.redirect('/');
+    }
+
+    const params = {
+        TableName,
+        Key: {
+            ma_sp,
+        },
+    };
+
+    try {
+        // lấy sản phẩm từ db
+        const { Item } = await docClient.get(params).promise();
+        if (Item) {
+            // nếu sản phẩm tồn tại thì render ra view update
             return res.render('update', {
-                alertMessage: 'san pham khong ton tai',
+                sanPham: Item,
             });
         }
-
-        const resultUploadImage = await uploadFile(image);
-
-        params = {
-            TableName,
-            Item: {
-                ma_sp,
-                ten_sp,
-                so_luong,
-                image: resultUploadImage.Location,
-            },
-        };
-
-        await docClient.put(params).promise();
-
-        return res.redirect('/');
-    } catch (error) {
-        console.log(error);
+    } catch (err) {
+        console.log(err);
     }
-    return res.redirect('/add');
+    return res.redirect('/');
+});
+
+app.post('/update', async (req, res) => {
+    const { ma_sp, ten_sp, so_luong, image } = req.body;
+
+    // kiểm tra các biến có bị thiếu không
+    if (!ma_sp || !ten_sp || !so_luong || !image) {
+        return res.redirect('/update/' + ma_sp);
+    }
+
+    // tạo params
+    const params = {
+        TableName,
+        Item: {
+            ma_sp,
+            ten_sp,
+            so_luong,
+            image,
+        },
+    };
+
+    try {
+        // cập nhật sản phẩm vào db
+        const data = docClient.put(params).promise();
+        return res.redirect('/');
+    } catch (err) {
+        console.log(err);
+    }
+    return res.redirect('/');
 });
 
 app.post('/delete', async (req, res) => {
     const { ma_sp } = req.body;
-    let params = {
-        TableName,
-        KeyConditionExpression: 'ma_sp = :v_ma_sp',
-        ExpressionAttributeValues: {
-            ':v_ma_sp': ma_sp,
-        },
-        Limit: 1,
-    };
 
-    try {
-        const { Items } = await docClient.query(params).promise();
-        console.log(Items);
-        if (Items.length == 0) {
-            return res.redirect('/');
-        }
-
-        params = {
-            TableName,
-            Key: {
-                ma_sp,
-            },
-        };
-
-        await docClient.delete(params).promise();
-
+    // kiểm tra mã sản phẩm có tồn tại không
+    if (!ma_sp) {
         return res.redirect('/');
-    } catch (error) {
-        console.log(error);
     }
-    return res.redirect('/');
-});
 
-app.get('/:ma_sp', async (req, res) => {
-    const ma_sp = req.params.ma_sp;
-
-    let params = {
+    // tạo params
+    const params = {
         TableName,
-        KeyConditionExpression: 'ma_sp = :v_ma_sp',
-        ExpressionAttributeValues: {
-            ':v_ma_sp': ma_sp,
+        Key: {
+            ma_sp,
         },
-        Limit: 1,
     };
-
+    
     try {
-        const { Items } = await docClient.query(params).promise();
-        if (Items.length == 0) {
-            return res.redirect('/');
+        // Kiểm tra sản phẩm có tồn tại không
+        const { Item } = await docClient.get(params).promise();
+        
+        if (Item) {
+            // nếu sản phẩm tồn tại thì xóa sản phẩm
+            await docClient.delete(params).promise();
+            return res.redirect('/?deleteStatus=true');
         }
-
-        return res.render('update', {
-            sanPham: Items[0],
-            alertMessage: '',
-        });
-    } catch (error) {
-        console.log(error);
+    } catch (err) {
+        console.log(err);
     }
-
-    return res.redirect('/');
-});
-
-// add
-app.post('/add', upload.single('image'), async (req, res) => {
-    const { ma_sp, ten_sp, so_luong } = req.body;
-    const image = req.file;
-    if (!image) {
-        return res.render('add', {
-            alertMessage: 'san pham phai co hinh anh',
-        });
-    }
-
-    let params = {
-        TableName,
-        KeyConditionExpression: 'ma_sp = :v_ma_sp',
-        ExpressionAttributeValues: {
-            ':v_ma_sp': ma_sp,
-        },
-        Limit: 1,
-    };
-
-    try {
-        const { Items } = await docClient.query(params).promise();
-        console.log(Items);
-        if (Items.length > 0) {
-            return res.render('add', {
-                alertMessage: 'san pham da ton tai',
-            });
-        }
-
-        // upload anh
-        const resultUploadImage = await uploadFile(image);
-
-        params = {
-            TableName,
-            Item: {
-                ma_sp,
-                ten_sp,
-                so_luong,
-                image: resultUploadImage.Location,
-            },
-        };
-
-        const data = await docClient.put(params).promise();
-
-        return res.redirect('/');
-    } catch (error) {
-        console.log(error);
-    }
-    return res.redirect('/add');
+    return res.redirect('/?deleteStatus=false');
 });
 
 app.get('/', async (req, res) => {
+    const { deleteStatus } = req.query;
+
+    // tạo params
     const params = {
         TableName,
     };
 
     try {
+        // lấy danh sách sản phẩm từ db
         const { Items } = await docClient.scan(params).promise();
-        if (Items.length >= 0) {
-            return res.render('index', { data: Items });
+        
+        if (Items.length > 0) {
+            return res.render('home', {
+                sanPhams: Items,
+                deleteStatus,
+            });
         }
-    } catch (error) {
-        console.log(error);
+    } catch (err) {
+        console.log(err);
     }
-    return res.render('index', { data: [] });
-});
 
-app.listen(PORT, () => {
-    console.log(`server is running on http://localhost:${PORT}`);
+    return res.render('home', {
+        sanPhams: [],
+        deleteStatus,
+    });
 });

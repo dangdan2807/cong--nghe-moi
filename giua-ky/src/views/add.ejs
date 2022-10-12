@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Bootstrap demo</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi"
+            crossorigin="anonymous"
+        />
+    </head>
+    <body>
+        <div class="d-flex justify-content-center">
+            <div>
+                <h1 class="mt-2">them san pham</h1>
+                <form id="form" class="mt-2" method="post" action="/add">
+                    <!-- <div class="mb-3">
+                        <label for="ma_sp" class="form-label">ma sp</label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="ma_sp"
+                            name="ma_sp"
+                            placeholder="nhap ma san pham"
+                        />
+                        <span class="text-danger error"></span>
+                    </div> -->
+                    <div class="mb-3">
+                        <label for="ten_sp" class="form-label">ten sp</label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="ten_sp"
+                            name="ten_sp"
+                            placeholder="nhap ten san pham"
+                        />
+                        <span class="text-danger error"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label for="so_luong" class="form-label">so luong</label>
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="so_luong"
+                            name="so_luong"
+                            value="1"
+                            min="1"
+                            placeholder="nhap so luong"
+                        />
+                        <span class="text-danger error"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label for="image" class="form-label">hinh anh</label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="image"
+                            name="image"
+                            placeholder="nhap url hinh anh"
+                        />
+                        <span class="text-danger error"></span>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Them</button>
+                </form>
+            </div>
+        </div>
+
+        <script
+            src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
+            crossorigin="anonymous"
+        ></script>
+        <script>
+            const form = document.getElementById('form');
+
+            const ten_sp = document.getElementById('ten_sp');
+            const ten_sp_error = document.querySelector('#ten_sp ~ .error');
+
+            const so_luong = document.getElementById('so_luong');
+            const so_luong_error = document.querySelector('#so_luong ~ .error');
+
+            const image = document.getElementById('image');
+            const image_error = document.querySelector('#image ~ .error');
+
+            const stringRegex = /^[a-zZ-A0-9]+$/;
+            const urlRegex = /^[a-zZ-A0-9-]+$/;
+            const numberRegex = /^[0-9]+$/;
+
+            form.addEventListener('submit', (e) => {
+                let flag = true;
+                if (!stringRegex.test(ten_sp.value)) {
+                    ten_sp_error.textContent = 'ten san pham khong hop le (chi chua so va chu)';
+                    flag = false;
+                    e.preventDefault();
+                } else {
+                    ma_sp.textContent = '';
+                }
+
+                if (!numberRegex.test(so_luong.value)) {
+                    so_luong_error.textContent = 'so luong san pham khong hop le (chi chua so)';
+                    flag = false;
+                    e.preventDefault();
+                } else {
+                    ma_sp.textContent = '';
+                }
+
+                if (!urlRegex.test(image.value)) {
+                    image_error.textContent = 'url không hop le';
+                    flag = false;
+                    e.preventDefault();
+                } else {
+                    ma_sp.textContent = '';
+                }
+
+                if (flag) {
+                    form.submit();
+                }
+            });
+        </script>
+    </body>
+</html>
