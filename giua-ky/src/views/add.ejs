@@ -15,6 +15,14 @@
         <div class="d-flex justify-content-center">
             <div>
                 <h1 class="mt-2">them san pham</h1>
+                <% if(status !== undefined) { %>
+                <div
+                    class="alert alert-<% if(status == 'true') { %>success <% } else if (status == 'false') {%>danger <% } %>"
+                    role="alert"
+                >
+                    <%= message %>
+                </div>
+                <% } %>
                 <form id="form" class="mt-2" method="post" action="/add">
                     <!-- <div class="mb-3">
                         <label for="ma_sp" class="form-label">ma sp</label>
@@ -35,6 +43,7 @@
                             id="ten_sp"
                             name="ten_sp"
                             placeholder="nhap ten san pham"
+                            required
                         />
                         <span class="text-danger error"></span>
                     </div>
@@ -48,17 +57,19 @@
                             value="1"
                             min="1"
                             placeholder="nhap so luong"
+                            required
                         />
                         <span class="text-danger error"></span>
                     </div>
                     <div class="mb-3">
-                        <label for="image" class="form-label">hinh anh</label>
+                        <label for="image" class="form-label">url hinh anh</label>
                         <input
-                            type="text"
+                            type="url"
                             class="form-control"
                             id="image"
                             name="image"
                             placeholder="nhap url hinh anh"
+                            required
                         />
                         <span class="text-danger error"></span>
                     </div>
@@ -84,13 +95,14 @@
             const image = document.getElementById('image');
             const image_error = document.querySelector('#image ~ .error');
 
-            const stringRegex = /^[a-zZ-A0-9]+$/;
-            const urlRegex = /^[a-zZ-A0-9-]+$/;
+            const stringRegex = /^[a-zA-Z0-9]+$/;
+            const urlRegex = /^[a-zA-Z0-9-]+$/;
             const numberRegex = /^[0-9]+$/;
 
             form.addEventListener('submit', (e) => {
                 let flag = true;
-                if (!stringRegex.test(ten_sp.value)) {
+
+                if (stringRegex.test(ten_sp.value) === false) {
                     ten_sp_error.textContent = 'ten san pham khong hop le (chi chua so va chu)';
                     flag = false;
                     e.preventDefault();
@@ -98,7 +110,7 @@
                     ma_sp.textContent = '';
                 }
 
-                if (!numberRegex.test(so_luong.value)) {
+                if (numberRegex.test(so_luong.value) === false) {
                     so_luong_error.textContent = 'so luong san pham khong hop le (chi chua so)';
                     flag = false;
                     e.preventDefault();
@@ -106,7 +118,7 @@
                     ma_sp.textContent = '';
                 }
 
-                if (!urlRegex.test(image.value)) {
+                if (urlRegex.test(image.value) === false) {
                     image_error.textContent = 'url không hop le';
                     flag = false;
                     e.preventDefault();

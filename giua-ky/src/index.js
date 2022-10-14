@@ -29,7 +29,11 @@ const docClient = new AWS.DynamoDB.DocumentClient();
 
 // routes
 app.get('/add', async (req, res) => {
-    return res.render('add');
+    const { status, message } = req.query;
+    return res.render('add', {
+        status,
+        message,
+    });
 });
 
 app.post('/add', async (req, res) => {
@@ -37,7 +41,7 @@ app.post('/add', async (req, res) => {
 
     // kiểm tra các biến có bị thiếu không
     if (!ten_sp || !so_luong || !image) {
-        return res.redirect('/add');
+        return res.redirect('/add?status=false&message=Thieu thong tin san pham');
     }
 
     // tạo params
@@ -54,11 +58,12 @@ app.post('/add', async (req, res) => {
     try {
         // thêm sản phẩm vào db
         const data = docClient.put(params).promise();
-        return res.redirect('/');
+        console.log(data);
+        return res.redirect('/?status=true&message=Them san pham thanh cong');
     } catch (err) {
         console.log(err);
     }
-    return res.redirect('/');
+    return res.redirect('/?status=false&message=Them san pham that bai');
 });
 
 app.get('/update/:ma_sp', async (req, res) => {
@@ -66,7 +71,7 @@ app.get('/update/:ma_sp', async (req, res) => {
 
     // kiểm tra mã sản phẩm có tồn tại không
     if (!ma_sp) {
-        return res.redirect('/');
+        return res.redirect('/?status=false&message=San pham khong ton tai');
     }
 
     const params = {
@@ -88,7 +93,7 @@ app.get('/update/:ma_sp', async (req, res) => {
     } catch (err) {
         console.log(err);
     }
-    return res.redirect('/');
+    return res.redirect('/?status=false&message=San pham khong ton tai');
 });
 
 app.post('/update', async (req, res) => {
@@ -96,28 +101,40 @@ app.post('/update', async (req, res) => {
 
     // kiểm tra các biến có bị thiếu không
     if (!ma_sp || !ten_sp || !so_luong || !image) {
-        return res.redirect('/update/' + ma_sp);
+        return res.redirect('/?status=false&message=San pham khong ton tai');
     }
 
     // tạo params
-    const params = {
+    let params = {
         TableName,
-        Item: {
+        Key: {
             ma_sp,
-            ten_sp,
-            so_luong,
-            image,
         },
     };
 
     try {
-        // cập nhật sản phẩm vào db
-        const data = docClient.put(params).promise();
-        return res.redirect('/');
+        // lấy sản phẩm từ db
+        const { Item } = await docClient.get(params).promise();
+        if (Item) {
+            params = {
+                TableName,
+                Item: {
+                    ma_sp,
+                    ten_sp,
+                    so_luong,
+                    image,
+                },
+            };
+
+            // cập nhật sản phẩm vào db
+            const data = docClient.put(params).promise();
+            return res.redirect('/?status=true&message=Cap nhat thong tin san pham thanh cong');
+        }
+        return res.redirect('/?status=false&message=Cap nhat thong tin san pham that bai');
     } catch (err) {
         console.log(err);
     }
-    return res.redirect('/');
+    return res.redirect('/?status=false&message=San pham khong ton tai');
 });
 
 app.post('/delete', async (req, res) => {
@@ -135,24 +152,24 @@ app.post('/delete', async (req, res) => {
             ma_sp,
         },
     };
-    
+
     try {
         // Kiểm tra sản phẩm có tồn tại không
         const { Item } = await docClient.get(params).promise();
-        
+
         if (Item) {
             // nếu sản phẩm tồn tại thì xóa sản phẩm
             await docClient.delete(params).promise();
-            return res.redirect('/?deleteStatus=true');
+            return res.redirect('/?status=true&message=Xoa san pham thanh cong');
         }
     } catch (err) {
         console.log(err);
     }
-    return res.redirect('/?deleteStatus=false');
+    return res.redirect('/?status=false&message=Xoa san pham that bai');
 });
 
 app.get('/', async (req, res) => {
-    const { deleteStatus } = req.query;
+    const { status, message } = req.query;
 
     // tạo params
     const params = {
@@ -162,11 +179,12 @@ app.get('/', async (req, res) => {
     try {
         // lấy danh sách sản phẩm từ db
         const { Items } = await docClient.scan(params).promise();
-        
+
         if (Items.length > 0) {
             return res.render('home', {
                 sanPhams: Items,
-                deleteStatus,
+                status,
+                message,
             });
         }
     } catch (err) {
@@ -175,6 +193,7 @@ app.get('/', async (req, res) => {
 
     return res.render('home', {
         sanPhams: [],
-        deleteStatus,
+        status,
+        message,
     });
 });

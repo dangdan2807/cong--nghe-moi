@@ -15,10 +15,14 @@
         <div class="d-flex justify-content-center">
             <div>
                 <h1>Danh sach san pham</h1>
-                <% if(deleteStatus == 'true') { %>
-                <div class="alert alert-success" role="alert">Xoa san pham thanh cong</div>
-                <% } %> <% if(deleteStatus == 'false') { %>
-                <div class="alert alert-danger" role="alert">Xoa san pham that bai</div>
+                <a class="btn btn-primary me-2 mb-2" href="/add" role="button">them san pham</a>
+                <% if(status !== undefined) { %>
+                <div
+                    class="alert alert-<% if(status == 'true') { %>success <% } else if (status == 'false') {%>danger <% } %>"
+                    role="alert"
+                >
+                    <%= message %>
+                </div>
                 <% } %>
                 <table class="table mt-3">
                     <thead>
